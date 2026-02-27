@@ -155,22 +155,3 @@ Redirect to original URL (tracks analytics)
 ### GET /analytics/{short_code}
 Get click analytics
 
-## 🚨 Troubleshooting
-
-See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-
-## 🤝 Contributing
-
-Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md)
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE)
-
-## 👨‍💻 Author
-
-**Your Name**
-- Portfolio: https://yourwebsite.com
-- LinkedIn: https://linkedin.com/in/yourprofile
-- GitHub: [@yourusername](https://github.com/yourusername)
-
