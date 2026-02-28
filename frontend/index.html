@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkSnap - URL Shortener | AWS Serverless</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <div class="container">
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fa-solid fa-link logo-icon"></i>
+                <h1 class="logo-text">LinkSnap</h1>
+            </div>
+            <nav class="nav">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="https://github.com/cyberN3m3" class="nav-link" target="_blank">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <h2 class="hero-title">
+                Shorten URLs.
+                <span class="gradient-text">Track Clicks.</span>
+                <br>
+                <span class="gradient-text">Impress Recruiters.</span>
+            </h2>
+            <p class="hero-subtitle">
+                Production-grade URL shortener built with AWS Lambda, DynamoDB, and Terraform.
+                <br><strong>Costs $0/month.</strong> Scales infinitely.
+            </p>
+
+            <!-- URL Shortener Card -->
+            <div class="shortener-card">
+                <div class="input-group">
+                    <input 
+                        type="url" 
+                        id="urlInput" 
+                        class="url-input" 
+                        placeholder="Paste your long URL here..."
+                        autocomplete="url"
+                    />
+                    <button id="shortenBtn" class="btn-shorten" onclick="shortenURL()">
+                        <span class="btn-text">Shorten</span>
+                        <span class="btn-icon"><i class="fa-solid fa-arrow-right"></i></span>
+                    </button>
+                </div>
+
+                <!-- Custom Code Toggle -->
+                <div class="custom-section">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="useCustomCode" onchange="toggleCustomCode()">
+                        <span><i class="fa-solid fa-pen-to-square"></i> Customize short code (optional)</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="customCodeInput" 
+                        class="custom-input" 
+                        placeholder="my-custom-link"
+                        maxlength="20"
+                        style="display: none;"
+                    />
+                </div>
+
+                <!-- Loading -->
+                <div class="loading-state" id="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Creating your short link...</p>
+                </div>
+
+                <!-- Result -->
+                <div class="result-card" id="result" style="display: none;">
+                    <p class="result-label"><i class="fa-solid fa-circle-check"></i> Your short link is ready!</p>
+                    <div class="result-url-box">
+                        <input type="text" id="shortUrlInput" class="short-url-display" readonly>
+                        <button class="btn-copy" onclick="copyURL()">
+                            <i class="fa-solid fa-copy"></i> <span id="copyText">Copy</span>
+                        </button>
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn-analytics" onclick="showAnalytics()">
+                            <i class="fa-solid fa-chart-simple"></i> View Analytics
+                        </button>
+                        <button class="btn-qr" onclick="showQR()">
+                            <i class="fa-solid fa-qrcode"></i> QR Code
+                        </button>
+                        <button class="btn-reset" onclick="reset()">
+                            <i class="fa-solid fa-plus"></i> Create Another
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error -->
+                <div class="error-message" id="error" style="display: none;"></div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value"><i class="fa-solid fa-infinity"></i></div>
+                    <div class="stat-label">Scalability</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value"><i class="fa-solid fa-dollar-sign"></i>0</div>
+                    <div class="stat-label">Monthly Cost</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value"><i class="fa-solid fa-bolt"></i> 50ms</div>
+                    <div class="stat-label">Response Time</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <h2 class="section-title">Why LinkSnap?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <h3>Lightning Fast</h3>
+                    <p>Powered by AWS Lambda and CloudFront. Sub-50ms response times globally.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Track clicks, referrers, and visitor patterns for every link.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <h3>Custom Short Codes</h3>
+                    <p>Create memorable, branded links with custom short codes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3>Secure & Reliable</h3>
+                    <p>Enterprise-grade AWS infrastructure. 99.99% uptime SLA.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-qrcode"></i></div>
+                    <h3>QR Codes</h3>
+                    <p>Generate QR codes instantly for easy offline sharing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                    <h3>Free Forever</h3>
+                    <p>Runs entirely on AWS Free Tier. Zero operating costs.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <section class="tech-stack">
+            <h2 class="section-title">Built With Modern Tech</h2>
+            <div class="tech-badges">
+                <span class="badge"><i class="fa-brands fa-aws"></i> AWS Lambda</span>
+                <span class="badge"><i class="fa-solid fa-database"></i> DynamoDB</span>
+                <span class="badge"><i class="fa-solid fa-network-wired"></i> API Gateway</span>
+                <span class="badge"><i class="fa-solid fa-cloud"></i> CloudFront</span>
+                <span class="badge"><i class="fa-solid fa-code"></i> Terraform</span>
+                <span class="badge"><i class="fa-brands fa-python"></i> Python</span>
+                <span class="badge"><i class="fa-brands fa-aws"></i> S3</span>
+            </div>
+            <p class="tech-description">
+                100% serverless architecture. Infrastructure as Code. Production-ready from day one.
+                
+            </p>
+        </section>
+
+        <!-- Footer -->
+       <footer class="footer">
+    <p class="footer-meta">
+        <a href="https://github.com/cyberN3m3/URL-SHORTNER" target="_blank">
+            <i class="fa-brands fa-github"></i> View Source
+        </a>
+        •
+        <a href="https://linkedin.com/in/anyasichineme" target="_blank">
+            <i class="fa-brands fa-linkedin"></i> LinkedIn
+        </a>
+        •
+        <a href="#" target="_blank">
+            <i class="fa-solid fa-briefcase"></i> Portfolio
+        </a>
+    </p>
+</footer>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div class="modal" id="analyticsModal" style="display: none;">
+        <div class="modal-overlay" onclick="closeModal('analyticsModal')"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('analyticsModal')">×</button>
+            <h3 class="modal-title"><i class="fa-solid fa-chart-line"></i> Analytics Dashboard</h3>
+            <div id="analyticsContent" class="analytics-content">
+                <div class="modal-loading">
+                    <div class="spinner"></div>
+                    <p>Loading analytics...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal" id="qrModal" style="display: none;">
+        <div class="modal-overlay" onclick="closeModal('qrModal')"></div>
+        <div class="modal-content modal-small">
+            <button class="modal-close" onclick="closeModal('qrModal')">×</button>
+            <h3 class="modal-title"><i class="fa-solid fa-qrcode"></i> QR Code</h3>
+            <div id="qrContent" class="qr-content">
+                <div id="qrcode"></div>
+                <p class="qr-instruction">Scan with your phone camera</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
