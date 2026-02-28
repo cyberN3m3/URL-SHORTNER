@@ -1,5 +1,5 @@
 // ============================================
-// URL SHORTENER - JAVASCRIPT
+// URL SHORTENER - JAVASCRIPT (PREMIUM VERSION)
 // API Integration | Analytics | QR Codes
 // ============================================
 
@@ -12,23 +12,29 @@ let currentShortUrl = null;
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('LinkSnap initialized');
+    console.log('LinkSnap Premium initialized');
     console.log('API Endpoint:', CONFIG.API_ENDPOINT);
     console.log('Short URL Base:', CONFIG.SHORT_URL_BASE);
     
     // Add enter key listener to URL input
-    document.getElementById('urlInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            shortenURL();
-        }
-    });
+    const urlInput = document.getElementById('urlInput');
+    if (urlInput) {
+        urlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                shortenURL();
+            }
+        });
+    }
     
     // Add enter key listener to custom code input
-    document.getElementById('customCodeInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            shortenURL();
-        }
-    });
+    const customCodeInput = document.getElementById('customCodeInput');
+    if (customCodeInput) {
+        customCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                shortenURL();
+            }
+        });
+    }
 });
 
 // ============================================
@@ -37,13 +43,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function toggleCustomCode() {
     const checkbox = document.getElementById('useCustomCode');
+    const wrapper = document.getElementById('customInputWrapper');
     const input = document.getElementById('customCodeInput');
     
     if (checkbox.checked) {
-        input.style.display = 'block';
-        input.focus();
+        wrapper.style.display = 'block';
+        setTimeout(() => input.focus(), 100);
     } else {
-        input.style.display = 'none';
+        wrapper.style.display = 'none';
         input.value = '';
     }
 }
@@ -66,6 +73,7 @@ async function shortenURL() {
     
     // Hide previous results/errors
     result.style.display = 'none';
+    result.style.opacity = '0';
     error.style.display = 'none';
     
     // Validate URL
@@ -96,6 +104,8 @@ async function shortenURL() {
     btn.disabled = true;
     
     try {
+        console.log('Calling API:', `${CONFIG.API_ENDPOINT}/shorten`);
+        
         // Call API
         const response = await fetch(`${CONFIG.API_ENDPOINT}/shorten`, {
             method: 'POST',
@@ -109,6 +119,7 @@ async function shortenURL() {
         });
         
         const data = await response.json();
+        console.log('API Response:', data);
         
         if (!response.ok) {
             throw new Error(data.error || 'Failed to shorten URL');
@@ -117,6 +128,8 @@ async function shortenURL() {
         // Success!
         currentShortCode = data.short_code;
         currentShortUrl = `${CONFIG.SHORT_URL_BASE}/${data.short_code}`;
+        
+        console.log('Short URL created:', currentShortUrl);
         
         showResult(currentShortUrl);
         
@@ -150,11 +163,23 @@ function showResult(shortUrl) {
     const result = document.getElementById('result');
     const shortUrlInput = document.getElementById('shortUrlInput');
     
+    console.log('Showing result:', shortUrl);
+    
     shortUrlInput.value = shortUrl;
+    
+    // Show with smooth animation
     result.style.display = 'block';
     
+    // Trigger animation by adding class after brief delay
+    setTimeout(() => {
+        result.style.opacity = '1';
+        result.style.transform = 'translateY(0)';
+    }, 10);
+    
     // Smooth scroll to result
-    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => {
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
 }
 
 // ============================================
@@ -163,7 +188,7 @@ function showResult(shortUrl) {
 
 function showError(message) {
     const error = document.getElementById('error');
-    error.textContent = message;
+    error.textContent = '⚠️ ' + message;
     error.style.display = 'block';
     
     // Auto-hide after 5 seconds
@@ -179,17 +204,14 @@ function showError(message) {
 async function copyURL() {
     const shortUrlInput = document.getElementById('shortUrlInput');
     const copyBtn = document.querySelector('.btn-copy');
-    const copyText = document.getElementById('copyText');
     
     try {
         await navigator.clipboard.writeText(shortUrlInput.value);
         
         // Visual feedback
-        copyText.textContent = 'Copied!';
         copyBtn.classList.add('copied');
         
         setTimeout(() => {
-            copyText.textContent = 'Copy';
             copyBtn.classList.remove('copied');
         }, 2000);
         
@@ -200,9 +222,9 @@ async function copyURL() {
         shortUrlInput.select();
         document.execCommand('copy');
         
-        copyText.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
         setTimeout(() => {
-            copyText.textContent = 'Copy';
+            copyBtn.classList.remove('copied');
         }, 2000);
     }
 }
@@ -224,7 +246,11 @@ async function showAnalytics() {
     modal.style.display = 'flex';
     content.innerHTML = `
         <div class="modal-loading">
-            <div class="spinner"></div>
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
             <p>Loading analytics...</p>
         </div>
     `;
@@ -239,18 +265,18 @@ async function showAnalytics() {
         
         // Display analytics
         content.innerHTML = `
-            <div class="analytics-stats">
+            <div style="display: grid; gap: 16px; margin-bottom: 24px;">
                 <div class="analytics-stat">
                     <span class="analytics-stat-label">Short Code</span>
                     <span class="analytics-stat-value">${data.short_code}</span>
                 </div>
                 <div class="analytics-stat">
                     <span class="analytics-stat-label">Total Clicks</span>
-                    <span class="analytics-stat-value">${data.total_clicks}</span>
+                    <span class="analytics-stat-value">${data.total_clicks || 0}</span>
                 </div>
                 <div class="analytics-stat">
                     <span class="analytics-stat-label">Unique Visitors</span>
-                    <span class="analytics-stat-value">${data.unique_visitors}</span>
+                    <span class="analytics-stat-value">${data.unique_visitors || 0}</span>
                 </div>
                 <div class="analytics-stat">
                     <span class="analytics-stat-label">Created</span>
@@ -260,17 +286,17 @@ async function showAnalytics() {
             
             ${data.total_clicks > 0 ? `
                 <div style="margin-top: 24px;">
-                    <h4 style="margin-bottom: 12px; color: var(--dark);">Top Referrers</h4>
+                    <h4 style="margin-bottom: 12px; font-size: 16px; font-weight: 600;">Top Referrers</h4>
                     ${formatReferrers(data.referrers)}
                 </div>
                 
                 <div style="margin-top: 24px;">
-                    <h4 style="margin-bottom: 12px; color: var(--dark);">Recent Clicks</h4>
+                    <h4 style="margin-bottom: 12px; font-size: 16px; font-weight: 600;">Recent Clicks</h4>
                     ${formatRecentClicks(data.recent_clicks)}
                 </div>
             ` : `
-                <div style="margin-top: 24px; text-align: center; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 10px;">
-                    <p style="color: #64748b;">No clicks yet. Share your link to start tracking!</p>
+                <div style="margin-top: 24px; text-align: center; padding: 32px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px;">
+                    <p style="color: var(--text-secondary); font-size: 14px;">No clicks yet. Share your link to start tracking!</p>
                 </div>
             `}
         `;
@@ -279,8 +305,8 @@ async function showAnalytics() {
         console.error('Error loading analytics:', err);
         content.innerHTML = `
             <div style="text-align: center; padding: 40px;">
-                <p style="color: var(--error);">Failed to load analytics</p>
-                <p style="color: #64748b; margin-top: 8px; font-size: 14px;">${err.message}</p>
+                <p style="color: var(--error); font-size: 16px; font-weight: 600; margin-bottom: 8px;">Failed to load analytics</p>
+                <p style="color: var(--text-tertiary); font-size: 14px;">${err.message}</p>
             </div>
         `;
     }
@@ -291,6 +317,7 @@ async function showAnalytics() {
 // ============================================
 
 function formatDate(isoString) {
+    if (!isoString) return 'N/A';
     const date = new Date(isoString);
     return date.toLocaleDateString('en-US', {
         month: 'short',
@@ -303,7 +330,7 @@ function formatDate(isoString) {
 
 function formatReferrers(referrers) {
     if (!referrers || Object.keys(referrers).length === 0) {
-        return '<p style="color: #64748b; font-size: 14px;">No referrer data yet</p>';
+        return '<p style="color: var(--text-tertiary); font-size: 14px;">No referrer data yet</p>';
     }
     
     return Object.entries(referrers)
@@ -317,16 +344,16 @@ function formatReferrers(referrers) {
 
 function formatRecentClicks(clicks) {
     if (!clicks || clicks.length === 0) {
-        return '<p style="color: #64748b; font-size: 14px;">No clicks yet</p>';
+        return '<p style="color: var(--text-tertiary); font-size: 14px;">No clicks yet</p>';
     }
     
     return clicks.map(click => `
-        <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; margin-bottom: 8px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-size: 13px; color: var(--dark); font-weight: 600;">${click.referer}</span>
-                <span style="font-size: 12px; color: #64748b;">${formatDate(click.timestamp)}</span>
+        <div style="padding: 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; font-weight: 600;">${click.referer || 'Direct'}</span>
+                <span style="font-size: 12px; color: var(--text-tertiary);">${formatDate(click.timestamp)}</span>
             </div>
-            <div style="font-size: 12px; color: #64748b;">${click.user_agent}</div>
+            <div style="font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${click.user_agent || 'Unknown'}</div>
         </div>
     `).join('');
 }
@@ -347,13 +374,16 @@ function showQR() {
     // Clear previous QR code
     qrContainer.innerHTML = '';
     
-    // Generate QR code
+    // Generate QR code with theme-aware colors
+    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const isDark = theme === 'dark';
+    
     new QRCode(qrContainer, {
         text: currentShortUrl,
         width: 256,
         height: 256,
-        colorDark: '#667eea',
-        colorLight: '#ffffff',
+        colorDark: isDark ? '#10b981' : '#059669',
+        colorLight: isDark ? '#1a1a1a' : '#ffffff',
         correctLevel: QRCode.CorrectLevel.H
     });
     
@@ -366,7 +396,10 @@ function showQR() {
 // ============================================
 
 function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 // ============================================
@@ -374,33 +407,47 @@ function closeModal(modalId) {
 // ============================================
 
 function reset() {
-    document.getElementById('urlInput').value = '';
-    document.getElementById('customCodeInput').value = '';
-    document.getElementById('useCustomCode').checked = false;
-    document.getElementById('customCodeInput').style.display = 'none';
-    document.getElementById('result').style.display = 'none';
-    document.getElementById('error').style.display = 'none';
+    const urlInput = document.getElementById('urlInput');
+    const customCodeInput = document.getElementById('customCodeInput');
+    const customWrapper = document.getElementById('customInputWrapper');
+    const useCustomCode = document.getElementById('useCustomCode');
+    const result = document.getElementById('result');
+    const error = document.getElementById('error');
+    
+    if (urlInput) urlInput.value = '';
+    if (customCodeInput) customCodeInput.value = '';
+    if (useCustomCode) useCustomCode.checked = false;
+    if (customWrapper) customWrapper.style.display = 'none';
+    
+    if (result) {
+        result.style.display = 'none';
+        result.style.opacity = '0';
+    }
+    
+    if (error) error.style.display = 'none';
     
     currentShortCode = null;
     currentShortUrl = null;
     
-    document.getElementById('urlInput').focus();
+    if (urlInput) urlInput.focus();
 }
 
 // ============================================
 // SMOOTH SCROLL FOR NAVIGATION
 // ============================================
 
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
     });
 });
 
@@ -420,5 +467,4 @@ document.addEventListener('keydown', function(e) {
 // INITIALIZATION COMPLETE
 // ============================================
 
-console.log('✅ LinkSnap ready!');
-
+console.log('✅ LinkSnap Premium ready!');
