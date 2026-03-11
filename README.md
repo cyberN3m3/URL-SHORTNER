@@ -2,7 +2,6 @@
 
 > Production-grade URL shortener built with AWS Lambda, DynamoDB, and Terraform
 
-![Architecture](https://via.placeholder.com/800x400?text=Add+Architecture+Diagram)
 
 ## 🌐 Live Demo
 
@@ -160,4 +159,5 @@ Get click analytics
 ANYASI CHINEME
 - LinkedIn: https://linkedin.com/in/anyasichieneme
 - GitHub: https://github.com/cyberN3m3
+
 
