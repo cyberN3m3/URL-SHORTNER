@@ -5,7 +5,7 @@
 
 ## 🌐 Live Demo
 
-**Try it:** https://https://d112w3sfihd1g0.cloudfront.net
+**Try it:** https://d112w3sfihd1g0.cloudfront.net
 
 ## ✨ Features
 
@@ -159,5 +159,6 @@ Get click analytics
 ANYASI CHINEME
 - LinkedIn: https://linkedin.com/in/anyasichieneme
 - GitHub: https://github.com/cyberN3m3
+
 
 
