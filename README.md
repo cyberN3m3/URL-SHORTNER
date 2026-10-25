@@ -1,6 +1,6 @@
 # 🔗 LinkSnap - Serverless URL Shortener
 
-> Production-grade URL shortener built with AWS Lambda, DynamoDB, and Terraform
+> Serverless URL shortener built with AWS Lambda, API Gateway, DynamoDB and CloudFront, deployed with Terraform
 
 
 ## 🌐 Live Demo
@@ -9,19 +9,22 @@
 
 ## ✨ Features
 
-- ⚡ **Lightning Fast** - Sub-50ms response times
+- ⚡ **Fast redirects** - one DynamoDB key lookup per request
 - 📊 **Analytics Dashboard** - Track clicks, referrers, and visitors
 - 🎯 **Custom Short Codes** - Create memorable links
 - 📱 **QR Code Generation** - Instant QR codes
 - 💰 **$0/month Cost** - Runs on AWS Free Tier
-- 🔒 **Secure** - HTTPS, encrypted data
+- 🔒 **Secure** - HTTPS everywhere, encryption at rest, least-privilege IAM
 - 🚀 **Serverless** - Auto-scaling, zero maintenance
 
 ## 🏗️ Architecture
-User → CloudFront → API Gateway → Lambda → DynamoDB
-↓
-Analytics Tracking
-**AWS Services:**
+
+```
+User → CloudFront (static frontend on S3)
+     → API Gateway (HTTP API) → Lambda (create / redirect / analytics) → DynamoDB
+```
+
+**AWS services:**
 - Lambda (Python 3.11)
 - DynamoDB (NoSQL)
 - API Gateway (HTTP API)
@@ -39,13 +42,13 @@ Analytics Tracking
 ### Deploy in 5 Minutes
 ```bash
 # Clone repository
-git clone https://github.com/YOUR-USERNAME/url-shortener.git
-cd url-shortener
+git clone https://github.com/cyberN3m3/URL-SHORTNER.git
+cd URL-SHORTNER
 
 # Configure
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your unique_id
+# Edit terraform.tfvars (git-ignored) with your unique_id
 
 # Deploy
 terraform init
@@ -94,12 +97,11 @@ curl https://your-api.execute-api.us-east-1.amazonaws.com/prod/analytics/demo
 - **CDN:** CloudFront
 - **Hosting:** S3
 
-## 📈 Performance
+## 📈 Performance and scaling
 
-- **Response Time:** < 50ms (API)
-- **Availability:** 99.99% (AWS SLA)
-- **Scalability:** 1,000+ requests/second
-- **Latency:** < 100ms (global via CloudFront)
+- Every component is serverless (Lambda, API Gateway, DynamoDB on-demand), so it scales with traffic and costs nothing when idle.
+- Availability relies on the AWS managed services' own SLAs; no load test has been run yet, so no throughput figure is claimed.
+- Next step: a k6 load test to measure p95 latency and throughput.
 
 ## 🎓 What I Learned
 
