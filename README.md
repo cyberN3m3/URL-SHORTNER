@@ -1,166 +1,102 @@
-# 🔗 LinkSnap - Serverless URL Shortener
+# LinkSnap: a serverless URL shortener on AWS
 
-> Serverless URL shortener built with AWS Lambda, API Gateway, DynamoDB and CloudFront, deployed with Terraform
+LinkSnap turns long links into short ones and counts the clicks. It runs on AWS Lambda, API Gateway and DynamoDB, with the frontend on S3 behind CloudFront, and the whole stack is built with Terraform. There are no servers to patch, nothing runs while nobody is clicking, and at portfolio traffic it stays inside the AWS Free Tier.
 
+**Live demo:** https://d112w3sfihd1g0.cloudfront.net
 
-## 🌐 Live Demo
+## What it does
 
-**Try it:** https://d112w3sfihd1g0.cloudfront.net
+- Shortens a link, with an optional custom code (for example `/demo`)
+- Redirects with one DynamoDB key lookup and an HTTP 301
+- Records each click (time, referrer, user agent) and shows totals and top referrers
+- Generates a QR code for each short link
+- Expires old links and click records automatically with DynamoDB TTL
 
-## ✨ Features
-
-- ⚡ **Fast redirects** - one DynamoDB key lookup per request
-- 📊 **Analytics Dashboard** - Track clicks, referrers, and visitors
-- 🎯 **Custom Short Codes** - Create memorable links
-- 📱 **QR Code Generation** - Instant QR codes
-- 💰 **$0/month Cost** - Runs on AWS Free Tier
-- 🔒 **Secure** - HTTPS everywhere, encryption at rest, least-privilege IAM
-- 🚀 **Serverless** - Auto-scaling, zero maintenance
-
-## 🏗️ Architecture
+## Architecture
 
 ```
-User → CloudFront (static frontend on S3)
+User → CloudFront → S3 (frontend)
      → API Gateway (HTTP API) → Lambda (create / redirect / analytics) → DynamoDB
 ```
 
-**AWS services:**
-- Lambda (Python 3.11)
-- DynamoDB (NoSQL)
-- API Gateway (HTTP API)
-- CloudFront (CDN)
-- S3 (Static hosting)
-- IAM (Security)
+| Part | What it does |
+| --- | --- |
+| Lambda (Python 3.11) | Three small functions: create, redirect and analytics |
+| DynamoDB (on demand) | Two tables: links keyed by short code, clicks keyed by short code and time |
+| API Gateway (HTTP API) | Routes for creating links, redirecting and reading analytics |
+| CloudFront and S3 | Serve the frontend over HTTPS |
+| IAM | One least-privilege role per function |
 
-## 🚀 Quick Start
+The redirect path is one key lookup. Analytics writes are wrapped so a failure there never blocks a redirect, and the two tables are split by access pattern: link lookups are read-heavy, click events are write-heavy.
 
-### Prerequisites
-- AWS Account
-- Terraform >= 1.0
-- AWS CLI configured
+## Deploy it
 
-### Deploy in 5 Minutes
+You need an AWS account, the AWS CLI and Terraform 1.0 or later.
+
 ```bash
-# Clone repository
 git clone https://github.com/cyberN3m3/URL-SHORTNER.git
-cd URL-SHORTNER
-
-# Configure
-cd terraform
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars (git-ignored) with your unique_id
-
-# Deploy
+cd URL-SHORTNER/terraform
+cp terraform.tfvars.example terraform.tfvars   # set your unique_id; this file is git-ignored
 terraform init
 terraform apply
 
-# Upload frontend
 cd ..
 aws s3 sync frontend/ s3://$(terraform -chdir=terraform output -raw s3_bucket)/
-
-# Done! Visit your CloudFront URL
 ```
 
-## 📊 Features Demo
+Then open the CloudFront URL from `terraform output`.
 
-### Shorten URL
+## API
+
+**Create a short link**
+
 ```bash
 curl -X POST https://your-api.execute-api.us-east-1.amazonaws.com/prod/shorten \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","custom_code":"demo"}'
 ```
 
-### Get Analytics
-```bash
-curl https://your-api.execute-api.us-east-1.amazonaws.com/prod/analytics/demo
-```
-
-## 💰 Cost Breakdown
-
-| Service | Free Tier | Cost After |
-|---------|-----------|------------|
-| Lambda | 1M requests/mo | $0.20 per 1M |
-| DynamoDB | 25GB + 25 RCU/WCU | Pay-per-request |
-| API Gateway | 1M requests/mo | $1 per 1M |
-| S3 | 5GB | $0.023 per GB |
-| CloudFront | 1TB transfer/mo | $0.085 per GB |
-
-**Total:** $0/month on Free Tier, ~$0.50/month after
-
-## 🛠️ Tech Stack
-
-- **Infrastructure:** Terraform
-- **Backend:** Python 3.11, AWS Lambda
-- **Database:** DynamoDB
-- **API:** API Gateway (HTTP API)
-- **Frontend:** HTML, CSS, JavaScript
-- **CDN:** CloudFront
-- **Hosting:** S3
-
-## 📈 Performance and scaling
-
-- Every component is serverless (Lambda, API Gateway, DynamoDB on-demand), so it scales with traffic and costs nothing when idle.
-- Availability relies on the AWS managed services' own SLAs; no load test has been run yet, so no throughput figure is claimed.
-- Next step: a k6 load test to measure p95 latency and throughput.
-
-## 🎓 What I Learned
-
-- Serverless architecture patterns
-- Infrastructure as Code with Terraform
-- DynamoDB data modeling
-- API Gateway configuration
-- Lambda function optimization
-- CloudFront CDN setup
-- Cost optimization strategies
-
-## 🔧 Local Development
-```bash
-# Test Lambda functions locally
-cd lambda/create
-python lambda_function.py
-
-# Format Terraform
-cd terraform
-terraform fmt
-
-# Validate configuration
-terraform validate
-```
-
-## 📝 API Documentation
-
-### POST /shorten
-Create a shortened URL
-
-**Request:**
-```json
-{
-  "url": "https://example.com",
-  "custom_code": "optional"
-}
-```
-
-**Response:**
 ```json
 {
   "success": true,
-  "short_code": "abc123",
+  "short_code": "demo",
   "original_url": "https://example.com",
   "created_at": "2026-02-27T10:00:00"
 }
 ```
 
-### GET /{short_code}
-Redirect to original URL (tracks analytics)
+**Follow a link:** `GET /{short_code}` redirects to the original URL and records the click.
 
-### GET /analytics/{short_code}
-Get click analytics
+**Read the analytics:** `GET /analytics/{short_code}`
 
+## Cost
 
+| Service | Free Tier | After the Free Tier |
+| --- | --- | --- |
+| Lambda | 1M requests a month | $0.20 per 1M |
+| DynamoDB | 25 GB | Pay per request |
+| API Gateway | 1M requests a month | $1 per 1M |
+| S3 | 5 GB | $0.023 per GB |
+| CloudFront | 1 TB transfer a month | $0.085 per GB |
 
-ANYASI CHINEME
-- LinkedIn: https://linkedin.com/in/anyasichieneme
-- GitHub: https://github.com/cyberN3m3
+About $0 a month inside the Free Tier, and roughly $0.50 a month after it at demo traffic.
 
+## Limits and next steps
 
+- Everything is serverless, so it scales with traffic, but I haven't load-tested it yet, so I don't claim a throughput figure.
+- Next: a k6 load test to measure p95 latency and throughput.
 
+## Local checks
+
+```bash
+cd lambda/create && python lambda_function.py   # run a function locally
+cd terraform && terraform fmt && terraform validate
+```
+
+## What I learned
+
+Serverless design on Lambda and HTTP APIs, DynamoDB key design and TTL, least-privilege IAM per function, and keeping a whole stack in Terraform so it can be created and destroyed on demand.
+
+---
+
+Anyasi Chineme · [GitHub](https://github.com/cyberN3m3)
