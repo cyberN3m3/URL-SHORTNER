@@ -99,4 +99,4 @@ Serverless design on Lambda and HTTP APIs, DynamoDB key design and TTL, least-pr
 
 ---
 
-Anyasi Chineme · [GitHub](https://github.com/cyberN3m3)
+Anyasi Chineme · [LinkedIn](https://www.linkedin.com/in/anyasichineme/) · [GitHub](https://github.com/cyberN3m3)
